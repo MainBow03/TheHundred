@@ -1,520 +1,590 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Torneo dei 100 - Pro Layout</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #020617; color: white; font-family: 'system-ui', sans-serif; overflow: hidden; height: 100vh; }
-        .glass { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-        
-        .win-badge {
-            position: absolute; top: -10px; right: -10px;
-            background: linear-gradient(45deg, #f59e0b, #b45309);
-            color: white; font-size: 16px; font-weight: 900;
-            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; border: 3px solid #0f172a; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Torneo dei 100 - Evolution V5</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body { background-color: #020617; color: white; font-family: 'system-ui', sans-serif; overflow: hidden; }
+.glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+.card-active { transform: scale(1.05); border-color: #f59e0b; box-shadow: 0 0 25px rgba(245, 158, 11, 0.4); }
+.custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
 
-        @keyframes pulse-gold { 0%, 100% { box-shadow: 0 0 15px #f59e0b; } 50% { box-shadow: 0 0 30px #f59e0b; } }
-        .active-double { animation: pulse-gold 1.5s infinite; border-color: #f59e0b !important; background: #b45309 !important; }
-        
-        .gold-glow { box-shadow: 0 0 50px rgba(245, 158, 11, 0.5); border: 4px solid #f59e0b; }
-        .vanish { animation: vanish-anim 2s forwards ease-in; }
-        @keyframes vanish-anim { 
-            0% { opacity: 1; transform: scale(1); filter: brightness(1); } 
-            50% { transform: scale(1.1); filter: brightness(2) contrast(1.5); } 
-            100% { opacity: 0; transform: scale(0.1) translateY(-200px); filter: brightness(3) blur(10px); } 
-        }
-        
-        .vote-hidden { filter: blur(12px); opacity: 0.1; transition: all 0.5s ease; }
-        .vote-visible { filter: blur(0); opacity: 1; transform: scale(1.1); color: #ef4444; }
+.win-badge {
+position: absolute; top: -5px; right: -5px;
+background: linear-gradient(45deg, #f59e0b, #b45309);
+color: white; font-size: 10px; font-weight: 900;
+width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+border-radius: 50%; border: 2px solid #0f172a; z-index: 10;
+}
 
-        /* Effetto Spotlights per l'Arena */
-        .arena-bg {
-            background: radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.15) 0%, transparent 70%);
-        }
+@keyframes pulse-gold { 0%, 100% { box-shadow: 0 0 10px #f59e0b; } 50% { box-shadow: 0 0 20px #f59e0b; } }
+.active-double { animation: pulse-gold 1.5s infinite; border-color: #f59e0b !important; background: #b45309 !important; color: white !important; }
 
-        .fighter-card {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .fighter-card:hover { transform: translateY(-15px) scale(1.05); }
-    </style>
+.gold-glow { box-shadow: 0 0 20px #f59e0b; border: 3px solid #f59e0b; }
+.vanish { animation: vanish-anim 1.5s forwards; }
+@keyframes vanish-anim { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.5) translateY(-50px); filter: grayscale(1); } }
+
+.team-tag { font-size: 8px; padding: 1px 6px; border-radius: 4px; font-weight: 900; text-transform: uppercase; display: inline-block; margin-top: 4px; }
+</style>
 </head>
-<body class="flex flex-col">
+<body class="h-screen flex flex-col">
 
-    <!-- Schermata Iniziale -->
-    <div id="menu-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950 p-4">
-        <div class="max-w-lg w-full glass p-12 rounded-[4rem] border-blue-500/20 shadow-2xl text-center">
-            <h1 class="text-7xl font-black italic mb-2 tracking-tighter">TORNEO <span class="text-blue-500 text-8xl">100</span></h1>
-            <p class="text-slate-500 text-sm font-bold uppercase tracking-[0.3em] mb-12">Elite Battle Royale</p>
-            <input id="nick-input" type="text" placeholder="IL TUO NOME DI BATTAGLIA" maxlength="12" class="w-full p-6 rounded-3xl bg-slate-900 border border-slate-700 text-center font-black mb-6 text-white text-2xl outline-none focus:ring-4 ring-blue-500/50">
-            <div class="space-y-4">
-                <button onclick="handleCreateRoom()" class="w-full bg-blue-600 p-6 rounded-3xl font-black text-2xl uppercase hover:bg-blue-500 transition-all shadow-[0_0_30px_rgba(37,99,235,0.4)]">Crea Stanza</button>
-                <div class="flex gap-3">
-                    <input id="join-code-input" type="text" placeholder="CODICE" maxlength="5" class="flex-1 p-5 rounded-3xl bg-slate-900 border border-slate-700 text-center font-black uppercase text-2xl">
-                    <button onclick="handleJoinRoom()" class="bg-slate-800 px-10 rounded-3xl font-black uppercase hover:bg-slate-700 transition-colors border border-white/5">ENTRA</button>
-                </div>
-            </div>
-            <p id="auth-status" class="mt-8 text-xs text-slate-600 font-bold uppercase tracking-widest italic">Inizializzazione Neural Link...</p>
-        </div>
-    </div>
+<!-- Schermata Iniziale -->
+<div id="menu-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950 p-4 text-center">
+<div class="max-w-md w-full glass p-10 rounded-[3rem] border-blue-500/20 shadow-2xl">
+<h1 class="text-5xl font-black italic mb-2 tracking-tighter">TORNEO <span class="text-blue-500 text-6xl">100</span></h1>
+<p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-10">Team Random & Live Battle</p>
+<input id="nick-input" type="text" placeholder="IL TUO NICKNAME" maxlength="12" class="w-full p-5 rounded-2xl bg-slate-900 border border-slate-700 text-center font-bold mb-6 text-white outline-none focus:ring-2 ring-blue-500">
+<div class="space-y-4">
+<button id="btn-create" onclick="handleCreateRoom()" class="w-full bg-blue-600 p-5 rounded-2xl font-black uppercase hover:bg-blue-500 transition-colors shadow-lg">Crea Stanza</button>
+<div class="flex gap-2">
+<input id="join-code-input" type="text" placeholder="CODICE" maxlength="5" class="flex-1 p-4 rounded-2xl bg-slate-900 border border-slate-700 text-center font-bold uppercase">
+<button id="btn-join" onclick="handleJoinRoom()" class="bg-slate-700 px-8 rounded-2xl font-black uppercase hover:bg-slate-600 transition-colors">ENTRA</button>
+</div>
+</div>
+<p id="auth-status" class="mt-6 text-[10px] text-slate-500 font-bold uppercase italic tracking-widest">Connessione al server...</p>
+</div>
+</div>
 
-    <!-- Interfaccia Gioco Principale -->
-    <div id="game-screen" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
-        
-        <!-- Header Snello -->
-        <div class="bg-slate-950/80 border-b border-white/5 px-6 py-2 flex items-center justify-between z-20">
-            <div class="flex items-center gap-6">
-                <div class="flex flex-col">
-                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">RANKING SQUADRE</span>
-                    <div id="top-teams-list" class="flex gap-2"></div>
-                </div>
-                <div class="h-8 w-[1px] bg-white/10 mx-2"></div>
-                <div class="flex flex-col">
-                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">TOP 10 GUERRIERI</span>
-                    <div id="top-fighters-list" class="flex gap-2"></div>
-                </div>
-            </div>
-            
-            <div id="round-info" class="text-center">
-                <h2 id="round-display" class="text-3xl font-black italic text-blue-500 leading-none">ROUND 1</h2>
-                <div class="w-48 bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden border border-white/5">
-                    <div id="timer-bar" class="h-full bg-blue-500 w-full transition-all duration-100 linear"></div>
-                </div>
-            </div>
+<!-- Interfaccia Gioco -->
+<div id="game-screen" class="hidden flex-1 flex flex-col h-screen overflow-hidden">
 
-            <div class="flex items-center gap-4">
-                <div class="text-right">
-                    <span class="text-[10px] text-blue-400 block font-bold leading-none uppercase">ID Stanza</span>
-                    <span id="display-room-code" class="font-black text-xl tracking-tighter">---</span>
-                </div>
-            </div>
-        </div>
+<!-- Header -->
+<div class="bg-slate-900/95 border-b border-white/10 p-2 space-y-2">
+<div class="flex flex-col items-center gap-1">
+<span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">TOP 5 TEAM</span>
+<div id="top-teams-list" class="flex justify-center gap-2 w-full overflow-x-auto custom-scrollbar pb-1 px-4"></div>
+</div>
+<div class="flex items-center gap-3">
+<span class="text-[9px] font-black text-slate-500 uppercase">FIGHTERS</span>
+<div id="top-fighters-list" class="flex gap-2 overflow-x-auto custom-scrollbar flex-1 pb-1"></div>
+<div class="glass px-3 py-1 rounded-lg border-blue-500/30">
+<span class="text-[8px] text-blue-400 block font-bold text-center leading-none">CODICE</span>
+<span id="display-room-code" class="font-black text-sm tracking-widest">---</span>
+</div>
+</div>
+</div>
 
-        <!-- Mega Arena Centrale (Ampia e Aperta) -->
-        <main class="flex-1 relative arena-bg flex items-center justify-center p-4">
-            
-            <!-- Overlay Eventi Speciali -->
-            <div id="team-extinction-overlay" class="hidden absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-8 text-center">
-                <div class="text-9xl mb-6 animate-pulse">💀</div>
-                <h2 class="text-7xl font-black italic uppercase mb-16 leading-tight tracking-tighter" id="extinction-msg"></h2>
-                <div id="extinction-grid" class="flex flex-wrap justify-center gap-8 max-w-6xl"></div>
-            </div>
+<!-- Timer & Round Bar -->
+<div class="bg-slate-900 px-4 py-2 flex items-center justify-between border-b border-white/5">
+<div id="round-display" class="text-3xl font-black italic text-blue-500">ROUND 1</div>
+<div class="flex items-center gap-4 flex-1 justify-end">
+<div class="w-48 bg-slate-800 h-2 rounded-full overflow-hidden border border-white/10">
+<div id="timer-bar" class="h-full bg-blue-500 w-full transition-all duration-100 linear"></div>
+</div>
+</div>
+</div>
 
-            <div id="special-challenge-msg" class="hidden absolute top-12 z-40 bg-white text-black px-16 py-4 text-2xl font-black italic uppercase rounded-full shadow-[0_0_50px_rgba(255,255,255,0.4)] animate-bounce"></div>
+<!-- Main Arena -->
+<div class="flex-1 relative overflow-hidden flex flex-col items-center justify-center p-4">
 
-            <!-- Sezione Votazione -->
-            <div id="voting-arena" class="hidden w-full h-full flex flex-col items-center justify-center">
-                <div class="mb-8 text-center">
-                    <h2 class="text-4xl font-black italic uppercase tracking-tighter text-white">CHI DEVE <span class="text-red-600">CADERE</span>?</h2>
-                    <p id="votes-counter" class="text-slate-500 font-bold uppercase tracking-widest mt-1">ATTESA VOTI (0/0)</p>
-                </div>
-                
-                <div id="matchDisplay" class="flex flex-wrap justify-center gap-8 md:gap-12 w-full max-w-7xl">
-                    <!-- Cards generate dinamicamente -->
-                </div>
-            </div>
+<!-- Estinzione Team Overlay -->
+<div id="team-extinction-overlay" class="hidden absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-8 text-center">
+<h2 class="text-4xl font-black italic text-red-500 uppercase mb-8" id="extinction-msg"></h2>
+<div id="extinction-grid" class="grid grid-cols-5 gap-4 max-w-2xl"></div>
+</div>
 
-            <!-- Scommesse -->
-            <div id="betting-screen" class="hidden w-full max-w-4xl text-center">
-                <h2 class="text-6xl font-black italic uppercase mb-12 tracking-tighter">Scegli la tua Squadra</h2>
-                <div id="bet-options" class="grid grid-cols-2 md:grid-cols-5 gap-4"></div>
-            </div>
+<!-- Sfida Speciale Overlay -->
+<div id="special-challenge-msg" class="hidden absolute top-10 z-40 bg-yellow-500 text-black px-10 py-2 font-black italic uppercase rounded-full shadow-2xl animate-bounce"></div>
 
-            <!-- Suspense -->
-            <div id="suspense-screen" class="hidden text-center scale-125">
-                <div id="reveal-votes" class="flex justify-center gap-12 mb-10"></div>
-                <h2 class="text-8xl font-black italic text-red-600 uppercase tracking-tighter animate-pulse">ELIMINATO!</h2>
-            </div>
+<div id="betting-screen" class="hidden w-full max-w-4xl text-center">
+<h2 class="text-3xl font-black italic uppercase mb-2">Scommetti sul Vincitore</h2>
+<div id="bet-options" class="grid grid-cols-2 md:grid-cols-5 gap-3"></div>
+</div>
 
-            <!-- Lobby -->
-            <div id="waiting-lobby" class="text-center glass p-16 rounded-[4rem] border-blue-500/10">
-                <h2 class="text-4xl font-black text-white mb-10 italic uppercase tracking-widest">Pronti alla Guerra</h2>
-                <div id="lobby-list" class="flex flex-wrap justify-center gap-4 mb-12"></div>
-                <div id="host-controls" class="hidden">
-                    <button onclick="startBettingPhase()" class="bg-blue-600 px-20 py-8 rounded-[2.5rem] font-black text-3xl shadow-2xl hover:bg-blue-500 transition-all transform hover:scale-105 uppercase italic tracking-tighter">Inizia il Torneo</button>
-                </div>
-            </div>
+<div id="voting-arena" class="hidden w-full max-w-5xl">
+<h2 id="voting-title" class="text-center text-xl font-black italic uppercase mb-6 text-red-500">Chi vuoi eliminare?</h2>
+<div id="matchDisplay" class="flex flex-wrap justify-center gap-6"></div>
+</div>
 
-            <!-- Vittoria Finale -->
-            <div id="victory-screen" class="hidden absolute inset-0 bg-slate-950 z-[60] flex flex-col items-center justify-center p-8 overflow-y-auto">
-                <div class="text-9xl mb-4 animate-bounce">🏆</div>
-                <h2 id="winTeamName" class="text-9xl font-black uppercase italic mb-16 tracking-tighter">CAMPIONI</h2>
-                <div class="glass p-12 rounded-[5rem] w-full max-w-6xl border-yellow-500/20">
-                    <div id="win-team-members" class="flex flex-wrap justify-center gap-10"></div>
-                </div>
-                <button onclick="location.reload()" class="mt-16 bg-white text-black px-16 py-6 rounded-full font-black uppercase text-2xl hover:scale-110 transition-transform">Nuova Partita</button>
-            </div>
-        </main>
+<div id="suspense-screen" class="hidden text-center">
+<div id="reveal-votes" class="flex justify-center gap-8 mb-8"></div>
+<h2 class="text-5xl font-black italic text-red-600 uppercase">Eliminato!</h2>
+</div>
 
-        <!-- Footer Team (Più Sottile) -->
-        <div id="teamsContainer" class="h-[180px] bg-slate-900/40 backdrop-blur-md border-t border-white/5 p-4 flex gap-4 overflow-x-auto custom-scrollbar z-20"></div>
-    </div>
+<div id="waiting-lobby" class="text-center">
+<h2 class="text-xl font-black text-slate-500 mb-6 italic uppercase">Sala d'Attesa</h2>
+<div id="lobby-list" class="flex flex-wrap justify-center gap-2 mb-8"></div>
+<div id="host-controls" class="hidden">
+<button onclick="startBettingPhase()" class="bg-blue-600 px-10 py-4 rounded-2xl font-black text-lg shadow-xl hover:bg-blue-500 transition-all transform hover:scale-105">AVVIA PARTITA</button>
+</div>
+</div>
 
-    <div id="toast" class="fixed bottom-48 left-1/2 -translate-x-1/2 glass px-12 py-6 rounded-full font-black text-xl hidden z-[200] border-2 border-blue-500 shadow-2xl text-blue-400"></div>
+<!-- Schermata Vittoria Finale -->
+<div id="victory-screen" class="hidden text-center w-full max-w-6xl p-6">
+<div class="text-6xl mb-2 animate-bounce">🏆</div>
+<div class="text-xs font-black text-yellow-500 uppercase tracking-widest mb-1">TEAM VINCITORE</div>
+<h2 id="winTeamName" class="text-7xl font-black uppercase italic mb-10">---</h2>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+<div class="glass p-8 rounded-[3rem] border-yellow-500/30">
+<p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Classifica Membri per Punti</p>
+<div id="win-team-members" class="flex flex-wrap justify-center gap-4"></div>
+</div>
+
+<button onclick="location.reload()" class="mt-10 bg-blue-600 px-12 py-4 rounded-2xl font-black uppercase text-sm hover:bg-blue-500 transition-all shadow-xl">Torna al Menu</button>
+</div>
+</div>
+
+<!-- Footer -->
+<div id="teamsContainer" class="h-[200px] bg-slate-900/90 border-t border-white/5 p-3 flex gap-3 overflow-x-auto custom-scrollbar"></div>
+</div>
+
+<div id="toast" class="fixed bottom-32 left-1/2 -translate-x-1/2 glass px-6 py-3 rounded-2xl font-black text-xs hidden z-[200] border border-blue-500 shadow-2xl"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'torneo-100-v6-pro';
+        const firebaseConfig = {
+  apiKey: "AIzaSyDeq8wRDZUTYvpLzMpxN7sE-j_Y61vUFrM",
+  authDomain: "torneo100-b4a0d.firebaseapp.com",
+  projectId: "torneo100-b4a0d",
+  storageBucket: "torneo100-b4a0d.firebasestorage.app",
+  messagingSenderId: "359288876373",
+  appId: "1:359288876373:web:e4e6654c814f23017993dc",
+  measurementId: "G-T3W5TM1LWN"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'torneo-100-v5';
 
-        const rawPool = [
-            { n: "Gumball", i: "https://i.pinimg.com/736x/af/61/0f/af610f55e819f4bd3f37e5001a2b19ee.jpg" }, { n: "Darwin", i: "https://i.pinimg.com/1200x/5a/cf/9c/5acf9c886678411963046b04051e610e.jpg" }, { n: "Anais", i: "https://i.pinimg.com/736x/68/6f/3c/686f3c8f998bf2d90e5e4c294e007788.jpg" }, { n: "Nicole", i: "https://i.pinimg.com/736x/81/24/e4/8124e43da43e1d06dcdbca15f22a0cd9.jpg" }, { n: "Homer", i: "https://i.pinimg.com/736x/f4/db/88/f4db8845d2dd534b3ff4a259edd2dce8.jpg" }, { n: "Lisa", i: "https://i.pinimg.com/736x/81/68/de/8168de5a140ed669abfe5e2e4771b1b6.jpg" }, { n: "Bart", i: "https://i.pinimg.com/1200x/03/11/09/031109591c66397c76e7489d42f3127d.jpg" }, { n: "Marge", i: "https://i.pinimg.com/736x/77/6d/41/776d41748c4c9ae5940d8a9b10db881a.jpg" }, { n: "Maggie", i: "https://i.pinimg.com/736x/12/f7/17/12f7172ecf515a362b967146399c883b.jpg" }, { n: "Stewie", i: "https://i.pinimg.com/1200x/e2/41/eb/e241eb984821f9a67e6b61dbe68d3f5a.jpg" }, { n: "Poof", i: "https://i.pinimg.com/736x/74/c7/57/74c757db18aaa6f6aa99c06edd5d2384.jpg" }, { n: "Jack-Jack", i: "https://i.pinimg.com/1200x/6f/ab/72/6fab727016a2ba894070c6ce5ae78ec7.jpg" }, { n: "Phineas", i: "https://i.pinimg.com/736x/01/f8/d9/01f8d9e5651859eab697441a4e7d69c7.jpg" }, { n: "Dexter", i: "https://i.pinimg.com/736x/aa/be/e8/aabee842ff1b687f75b531f7aff4a0c7.jpg" }, { n: "Jimmy", i: "https://i.pinimg.com/736x/5e/5c/4b/5e5c4bd3018846ade0b0e5d989242b30.jpg" }, { n: "Sherman", i: "https://i.pinimg.com/1200x/3c/9e/9c/3c9e9cdc563f8e91922e8c946bb96541.jpg" }, { n: "Yang", i: "https://i.pinimg.com/736x/67/19/2c/67192c45308be09379c7841bf866a480.jpg" }, { n: "Yin", i: "https://i.pinimg.com/736x/6b/a7/e1/6ba7e1445bcb8114acd249cba888672d.jpg" }, { n: "Yo", i: "https://i.pinimg.com/736x/40/ba/03/40ba034d3b8fee78e33f4a76f66b6f5a.jpg" }, { n: "Saranoia", i: "https://i.pinimg.com/736x/ce/b1/30/ceb130b88775d3548429899b59bc3fc2.jpg" }, { n: "Molli", i: "https://i.pinimg.com/1200x/14/12/b6/1412b6e774e16d5fb3ae0ac58c6c17b4.jpg" }, { n: "Dolli", i: "https://i.pinimg.com/1200x/30/7c/ae/307cae771093aff04d01adc1c1b467c0.jpg" }, { n: "Lolli", i: "https://i.pinimg.com/1200x/72/80/df/7280df80dcb57cf22d5e1bcac2d7e179.jpg" }, { n: "Bunny", i: "https://i.pinimg.com/736x/3e/85/bb/3e85bba11ff5795a6a2831c4bbd4bb65.jpg" }, { n: "Spongebob", i: "https://i.pinimg.com/736x/08/9d/56/089d562f45d59b2f7e37e643a5ebf927.jpg" }, { n: "Patrick", i: "https://i.pinimg.com/736x/64/a3/f7/64a3f72a484c92329ba86e33263f2478.jpg" }, { n: "Sandy", i: "https://i.pinimg.com/1200x/11/5b/0b/115b0b5b56f96879c6d0129a9f024373.jpg" }, { n: "Mr Krab", i: "https://i.pinimg.com/736x/57/5f/6e/575f6e42df4f8a6af5f4e4eacc6c784b.jpg" }, { n: "Zoey", i: "https://i.pinimg.com/736x/69/bf/5e/69bf5e2186daf16d87b93696a08a0653.jpg" }, { n: "Mike", i: "https://i.pinimg.com/1200x/b6/6e/92/b66e9257f3062fa0158d7d5e32655c90.jpg" }, { n: "Cameron", i: "https://i.pinimg.com/736x/8d/00/e7/8d00e7d83f9b4788b205461534fe7762.jpg" }, { n: "Scott", i: "https://i.pinimg.com/736x/fe/bd/00/febd009d35c335548d26e5b895dde2e8.jpg" }, { n: "Jake", i: "https://i.pinimg.com/736x/86/88/ca/8688ca028ab5ef10165f81f4323719e6.jpg" }, { n: "Leone", i: "https://i.pinimg.com/736x/d1/f8/c5/d1f8c5a9ebd076378e70a04d3ea964c1.jpg" }, { n: "Brian", i: "https://i.pinimg.com/736x/c3/b0/8d/c3b08db19ee0440606ed85519b10d594.jpg" }, { n: "Scooby-doo", i: "https://i.pinimg.com/736x/a4/99/05/a49905a3baa1eef7c233cf021e28ee58.jpg" }, { n: "Shelly", i: "https://i.pinimg.com/736x/27/45/5c/27455c13a209173c75d6c87f98a7c434.jpg" }, { n: "Colt", i: "https://i.pinimg.com/1200x/f1/da/5b/f1da5b5ab855c518f76ee329c4c4b685.jpg" }, { n: "Bull", i: "https://i.pinimg.com/736x/f3/1d/19/f31d1969f4c4deacdd1c274200c98778.jpg" }, { n: "Spike", i: "https://i.pinimg.com/736x/fe/40/32/fe40323f442d7843df0be4c5b4223e6a.jpg" }, { n: "Mordecai", i: "https://i.pinimg.com/736x/4f/2e/04/4f2e04cace599c4433a84b490d12c2a4.jpg" }, { n: "Rigby", i: "https://i.pinimg.com/736x/dd/7d/18/dd7d18fad1de3125ac14554e42f4d55f.jpg" }, { n: "Benson", i: "https://i.pinimg.com/736x/4f/04/26/4f04266b8d054bff8bcd9b3df72d22c0.jpg" }, { n: "Pops", i: "https://i.pinimg.com/1200x/5c/31/88/5c3188f76f7483a3a19585bc5c0a905d.jpg" }, { n: "Katara", i: "https://i.pinimg.com/736x/01/cc/b4/01ccb4d5b83f914bbd336c75806109bc.jpg" }, { n: "Lapis", i: "https://i.pinimg.com/736x/11/9f/45/119f4584089a8b82e6687039cb7996e4.jpg" }, { n: "Penny", i: "https://i.pinimg.com/736x/f5/c2/17/f5c21738d5b922e6108b7b72bc33a25b.jpg" }, { n: "Suicune", i: "https://i.pinimg.com/1200x/ac/46/16/ac46168c080901af74decf8b6fe3464c.jpg" }, { n: "Luz", i: "https://i.pinimg.com/1200x/69/77/ab/6977abec1e1c00c294ba5488c35f3884.jpg" }, { n: "Eda", i: "https://i.pinimg.com/1200x/3f/83/9b/3f839b9194eb42f6deca9544018f82b1.jpg" }, { n: "King", i: "https://i.pinimg.com/736x/00/77/35/0077359c284840742c02dd9527552ae9.jpg" }, { n: "Amity", i: "https://i.pinimg.com/736x/80/ac/04/80ac04939196d04790539c3137c66e3c.jpg" }, { n: "Pikachu", i: "https://i.pinimg.com/1200x/b9/42/36/b94236cb2fb6fd4def12d4ebb744fc8f.jpg" }, { n: "Zatch Bell", i: "https://i.pinimg.com/736x/aa/16/89/aa168908184ab5f8275681d0110321cd.jpg" }, { n: "Laxus", i: "https://i.pinimg.com/1200x/b5/da/5e/b5da5e8e2b73b26980daf4dc2668a9e8.jpg" }, { n: "Zenitsu", i: "https://i.pinimg.com/736x/bb/23/08/bb230890228c2ffdff474019faf8c4dd.jpg" }, { n: "Vicky", i: "https://i.pinimg.com/736x/ba/3d/43/ba3d439aeb0206dffad3edc934a07e00.jpg" }, { n: "Mandy", i: "https://i.pinimg.com/736x/60/95/01/60950157128f9671609b5dcf0788553d.jpg" }, { n: "Chloè", i: "https://i.pinimg.com/736x/67/52/e2/6752e26bb7e2967e2514b899f5212e34.jpg" }, { n: "Squiddi", i: "https://i.pinimg.com/1200x/dc/07/3b/dc073b69dce3f1c2aa2f59c6a850687b.jpg" }, { n: "BMO", i: "https://i.pinimg.com/736x/7d/8a/41/7d8a4180e98080c019b4dfd1cbdbb650.jpg" }, { n: "Robot Boy", i: "https://i.pinimg.com/736x/91/d3/42/91d342072cae0214447bf8c362d9e02e.jpg" }, { n: "Wall-E", i: "https://i.pinimg.com/1200x/22/b3/14/22b3147bb3285558a8c576ced1a0fcee.jpg" }, { n: "Jenny", i: "https://i.pinimg.com/736x/98/15/0b/98150b18b592f654f637fadfeacb3ac9.jpg" }, { n: "Sonic", i: "https://i.pinimg.com/736x/00/c1/6a/00c16a1e431630f5f09ef2f81a50a399.jpg" }, { n: "Kid Flash", i: "https://i.pinimg.com/736x/1a/12/97/1a129763e05e0118893a558040b15a9a.jpg" }, { n: "Dash Parr", i: "https://i.pinimg.com/736x/86/4b/b8/864bb89a760c8f5d579ba630a1063d4b.jpg" }, { n: "Beep-Beep", i: "https://i.pinimg.com/1200x/e0/9f/18/e09f189addfb20d6e14cb51a87ec43bb.jpg" }, { n: "Dr Doofenshmirtz", i: "https://i.pinimg.com/1200x/c7/8b/74/c78b74d50baef1a8bf4948c797a23c8a.jpg" }, { n: "Plankton", i: "https://i.pinimg.com/736x/5f/7a/38/5f7a38445fb9f317a4f78b955ae825ce.jpg" }, { n: "James", i: "https://i.pinimg.com/736x/52/de/52/52de526b43ed08e7dfcd24948205d9eb.jpg" }, { n: "Waluigi", i: "https://i.pinimg.com/736x/68/2b/61/682b611cb8b1b9eca045cc801e5ed25f.jpg" }, { n: "Pacifica", i: "https://i.pinimg.com/736x/ee/84/b9/ee84b9508a7782e1dea9ae98199c94f8.jpg" }, { n: "Jessie", i: "https://i.pinimg.com/736x/37/14/56/371456be7855856874a7325b20b17312.jpg" }, { n: "Candace", i: "https://i.pinimg.com/736x/7b/59/2b/7b592b36ddd2f2e20b55c0d93835649c.jpg" }, { n: "Harley Quinn", i: "https://i.pinimg.com/736x/14/7a/bf/147abf4c3f45f88b19c805c72c58ca1a.jpg" }, { n: "Superboy", i: "https://i.pinimg.com/736x/34/20/a3/3420a34c3f0a287a8c06d435fcb577b7.jpg" }, { n: "Danny", i: "https://i.pinimg.com/736x/5e/5d/8a/5e5d8aa55ab87006f5a773b06299750e.jpg" }, { n: "Ben 10", i: "https://i.pinimg.com/736x/be/90/52/be9052475920b10fc6261b3aae2487a7.jpg" }, { n: "Raven", i: "https://i.pinimg.com/736x/fc/e3/30/fce330b50ce9cbf53287e441be15d597.jpg" }, { n: "Johnny Bravo", i: "https://i.pinimg.com/736x/fe/40/3f/fe403f42663b80a6e01d96ef8cbe7a76.jpg" }, { n: "Lightning", i: "https://i.pinimg.com/1200x/7b/c6/f8/7bc6f835f18606b724a2acf9c483f34b.jpg" }, { n: "Larry", i: "https://i.pinimg.com/1200x/83/a6/63/83a66340fdf4ea63e79f571ad2d10715.jpg" }, { n: "Gaston", i: "https://i.pinimg.com/1200x/4b/18/9b/4b189b8cdbfe9a5bdf53570f99655918.jpg" }, { n: "Elsa", i: "https://i.pinimg.com/736x/d8/19/10/d819101157f153a19e84aa5ee0a72b9f.jpg" }, { n: "Rapunzel", i: "https://i.pinimg.com/736x/91/6e/d2/916ed20a1658e45f0039f582f02dc507.jpg" }, { n: "Merlino", i: "https://i.pinimg.com/736x/c4/aa/fa/c4aafa2f0356da1003137bd12edfffac.jpg" }, { n: "Ade", i: "https://i.pinimg.com/736x/e7/29/0c/e7290c161c9517ba4038274d1aa8a6cf.jpg" }, { n: "Gommarosa", i: "https://i.pinimg.com/736x/27/3e/df/273edf0076e41b90096717b89e04c1aa.jpg" }, { n: "Vanellope", i: "https://i.pinimg.com/736x/ad/5f/16/ad5f1687ee819a550fd789b6d7e356db.jpg" }, { n: "Peach", i: "https://i.pinimg.com/736x/4e/fa/40/4efa401eafab814002a472cee6a847b5.jpg" }, { n: "Zelda", i: "https://i.pinimg.com/736x/6e/cc/8c/6ecc8c13f456dd1b91023cd7475632c8.jpg" }, { n: "Woody", i: "https://i.pinimg.com/736x/c6/cc/ca/c6ccca2d5a37919657b6eae0ccaba8fe.jpg" }, { n: "Buzz", i: "https://i.pinimg.com/736x/30/c9/e0/30c9e0a90ae1e73676b7b210b74ae7a1.jpg" }, { n: "Jessie TS", i: "https://i.pinimg.com/736x/54/f1/0b/54f10bf2096e5872f94334fcddefbcb1.jpg" }, { n: "Bullseye", i: "https://i.pinimg.com/736x/b8/b5/4c/b8b54c5ccec106b962ccc598ea83d530.jpg" }, { n: "Fred", i: "https://i.pinimg.com/1200x/78/bf/42/78bf42e10ff3abd7c9dc6bffd684af84.jpg" }, { n: "Daphne", i: "https://i.pinimg.com/736x/8e/13/57/8e13578db1208f86f7b8059647d82cdb.jpg" }, { n: "Velma", i: "https://i.pinimg.com/736x/2e/1e/95/2e1e953bb0b8a89d1574c0b221cd39b1.jpg" }, { n: "Shaggy", i: "https://i.pinimg.com/736x/73/18/0e/73180e9d1b68bee40fa289746f8c06de.jpg" }
-        ];
+const rawPool = [
+{ n: "Gumball", i: "https://i.pinimg.com/736x/af/61/0f/af610f55e819f4bd3f37e5001a2b19ee.jpg" },
+{ n: "Darwin", i: "https://i.pinimg.com/1200x/5a/cf/9c/5acf9c886678411963046b04051e610e.jpg" },
+{ n: "Anais", i: "https://i.pinimg.com/736x/68/6f/3c/686f3c8f998bf2d90e5e4c294e007788.jpg" },
+{ n: "Nicole", i: "https://i.pinimg.com/736x/81/24/e4/8124e43da43e1d06dcdbca15f22a0cd9.jpg" },
+{ n: "Homer", i: "https://i.pinimg.com/736x/f4/db/88/f4db8845d2dd534b3ff4a259edd2dce8.jpg" },
+{ n: "Lisa", i: "https://i.pinimg.com/736x/81/68/de/8168de5a140ed669abfe5e2e4771b1b6.jpg" },
+{ n: "Bart", i: "https://i.pinimg.com/1200x/03/11/09/031109591c66397c76e7489d42f3127d.jpg" },
+{ n: "Marge", i: "https://i.pinimg.com/736x/77/6d/41/776d41748c4c9ae5940d8a9b10db881a.jpg" },
+{ n: "Maggie", i: "https://i.pinimg.com/736x/12/f7/17/12f7172ecf515a362b967146399c883b.jpg" },
+{ n: "Stewie", i: "https://i.pinimg.com/1200x/e2/41/eb/e241eb984821f9a67e6b61dbe68d3f5a.jpg" },
+{ n: "Poof", i: "https://i.pinimg.com/736x/74/c7/57/74c757db18aaa6f6aa99c06edd5d2384.jpg" },
+{ n: "Jack-Jack", i: "https://i.pinimg.com/1200x/6f/ab/72/6fab727016a2ba894070c6ce5ae78ec7.jpg" },
+{ n: "Phineas", i: "https://i.pinimg.com/736x/01/f8/d9/01f8d9e5651859eab697441a4e7d69c7.jpg" },
+{ n: "Dexter", i: "https://i.pinimg.com/736x/aa/be/e8/aabee842ff1b687f75b531f7aff4a0c7.jpg" },
+{ n: "Jimmy", i: "https://i.pinimg.com/736x/5e/5c/4b/5e5c4bd3018846ade0b0e5d989242b30.jpg" },
+{ n: "Sherman", i: "https://i.pinimg.com/1200x/3c/9e/9c/3c9e9cdc563f8e91922e8c946bb96541.jpg" },
+{ n: "Yang", i: "https://i.pinimg.com/736x/67/19/2c/67192c45308be09379c7841bf866a480.jpg" },
+{ n: "Yin", i: "https://i.pinimg.com/736x/6b/a7/e1/6ba7e1445bcb8114acd249cba888672d.jpg" },
+{ n: "Yo", i: "https://i.pinimg.com/736x/40/ba/03/40ba034d3b8fee78e33f4a76f66b6f5a.jpg" },
+{ n: "Saranoia", i: "https://i.pinimg.com/736x/ce/b1/30/ceb130b88775d3548429899b59bc3fc2.jpg" },
+{ n: "Molli", i: "https://i.pinimg.com/1200x/14/12/b6/1412b6e774e16d5fb3ae0ac58c6c17b4.jpg" },
+{ n: "Dolli", i: "https://i.pinimg.com/1200x/30/7c/ae/307cae771093aff04d01adc1c1b467c0.jpg" },
+{ n: "Lolli", i: "https://i.pinimg.com/1200x/72/80/df/7280df80dcb57cf22d5e1bcac2d7e179.jpg" },
+{ n: "Bunny", i: "https://i.pinimg.com/736x/3e/85/bb/3e85bba11ff5795a6a2831c4bbd4bb65.jpg" },
+{ n: "Spongebob", i: "https://i.pinimg.com/736x/08/9d/56/089d562f45d59b2f7e37e643a5ebf927.jpg" },
+{ n: "Patrick", i: "https://i.pinimg.com/736x/64/a3/f7/64a3f72a484c92329ba86e33263f2478.jpg" },
+{ n: "Sandy", i: "https://i.pinimg.com/1200x/11/5b/0b/115b0b5b56f96879c6d0129a9f024373.jpg" },
+{ n: "Mr Krab", i: "https://i.pinimg.com/736x/57/5f/6e/575f6e42df4f8a6af5f4e4eacc6c784b.jpg" },
+{ n: "Zoey", i: "https://i.pinimg.com/736x/69/bf/5e/69bf5e2186daf16d87b93696a08a0653.jpg" },
+{ n: "Mike", i: "https://i.pinimg.com/1200x/b6/6e/92/b66e9257f3062fa0158d7d5e32655c90.jpg" },
+{ n: "Cameron", i: "https://i.pinimg.com/736x/8d/00/e7/8d00e7d83f9b4788b205461534fe7762.jpg" },
+{ n: "Scott", i: "https://i.pinimg.com/736x/fe/bd/00/febd009d35c335548d26e5b895dde2e8.jpg" },
+{ n: "Jake", i: "https://i.pinimg.com/736x/86/88/ca/8688ca028ab5ef10165f81f4323719e6.jpg" },
+{ n: "Leone", i: "https://i.pinimg.com/736x/d1/f8/c5/d1f8c5a9ebd076378e70a04d3ea964c1.jpg" },
+{ n: "Brian", i: "https://i.pinimg.com/736x/c3/b0/8d/c3b08db19ee0440606ed85519b10d594.jpg" },
+{ n: "Scooby-doo", i: "https://i.pinimg.com/736x/a4/99/05/a49905a3baa1eef7c233cf021e28ee58.jpg" },
+{ n: "Shelly", i: "https://i.pinimg.com/736x/27/45/5c/27455c13a209173c75d6c87f98a7c434.jpg" },
+{ n: "Colt", i: "https://i.pinimg.com/1200x/f1/da/5b/f1da5b5ab855c518f76ee329c4c4b685.jpg" },
+{ n: "Bull", i: "https://i.pinimg.com/736x/f3/1d/19/f31d1969f4c4deacdd1c274200c98778.jpg" },
+{ n: "Spike", i: "https://i.pinimg.com/736x/fe/40/32/fe40323f442d7843df0be4c5b4223e6a.jpg" },
+{ n: "Mordecai", i: "https://i.pinimg.com/736x/4f/2e/04/4f2e04cace599c4433a84b490d12c2a4.jpg" },
+{ n: "Rigby", i: "https://i.pinimg.com/736x/dd/7d/18/dd7d18fad1de3125ac14554e42f4d55f.jpg" },
+{ n: "Benson", i: "https://i.pinimg.com/736x/4f/04/26/4f04266b8d054bff8bcd9b3df72d22c0.jpg" },
+{ n: "Pops", i: "https://i.pinimg.com/1200x/5c/31/88/5c3188f76f7483a3a19585bc5c0a905d.jpg" },
+{ n: "Katara", i: "https://i.pinimg.com/736x/01/cc/b4/01ccb4d5b83f914bbd336c75806109bc.jpg" },
+{ n: "Lapis", i: "https://i.pinimg.com/736x/11/9f/45/119f4584089a8b82e6687039cb7996e4.jpg" },
+{ n: "Penny", i: "https://i.pinimg.com/736x/f5/c2/17/f5c21738d5b922e6108b7b72bc33a25b.jpg" },
+{ n: "Suicune", i: "https://i.pinimg.com/1200x/ac/46/16/ac46168c080901af74decf8b6fe3464c.jpg" },
+{ n: "Luz", i: "https://i.pinimg.com/1200x/69/77/ab/6977abec1e1c00c294ba5488c35f3884.jpg" },
+{ n: "Eda", i: "https://i.pinimg.com/1200x/3f/83/9b/3f839b9194eb42f6deca9544018f82b1.jpg" },
+{ n: "King", i: "https://i.pinimg.com/736x/00/77/35/0077359c284840742c02dd9527552ae9.jpg" },
+{ n: "Amity", i: "https://i.pinimg.com/736x/80/ac/04/80ac04939196d04790539c3137c66e3c.jpg" },
+{ n: "Pikachu", i: "https://i.pinimg.com/1200x/b9/42/36/b94236cb2fb6fd4def12d4ebb744fc8f.jpg" },
+{ n: "Zatch Bell", i: "https://i.pinimg.com/736x/aa/16/89/aa168908184ab5f8275681d0110321cd.jpg" },
+{ n: "Laxus", i: "https://i.pinimg.com/1200x/b5/da/5e/b5da5e8e2b73b26980daf4dc2668a9e8.jpg" },
+{ n: "Zenitsu", i: "https://i.pinimg.com/736x/bb/23/08/bb230890228c2ffdff474019faf8c4dd.jpg" },
+{ n: "Vicky", i: "https://i.pinimg.com/736x/ba/3d/43/ba3d439aeb0206dffad3edc934a07e00.jpg" },
+{ n: "Mandy", i: "https://i.pinimg.com/736x/60/95/01/60950157128f9671609b5dcf0788553d.jpg" },
+{ n: "Chloè", i: "https://i.pinimg.com/736x/67/52/e2/6752e26bb7e2967e2514b899f5212e34.jpg" },
+{ n: "Squiddi", i: "https://i.pinimg.com/1200x/dc/07/3b/dc073b69dce3f1c2aa2f59c6a850687b.jpg" },
+{ n: "BMO", i: "https://i.pinimg.com/736x/7d/8a/41/7d8a4180e98080c019b4dfd1cbdbb650.jpg" },
+{ n: "Robot Boy", i: "https://i.pinimg.com/736x/91/d3/42/91d342072cae0214447bf8c362d9e02e.jpg" },
+{ n: "Wall-E", i: "https://i.pinimg.com/1200x/22/b3/14/22b3147bb3285558a8c576ced1a0fcee.jpg" },
+{ n: "Jenny", i: "https://i.pinimg.com/736x/98/15/0b/98150b18b592f654f637fadfeacb3ac9.jpg" },
+{ n: "Sonic", i: "https://i.pinimg.com/736x/00/c1/6a/00c16a1e431630f5f09ef2f81a50a399.jpg" },
+{ n: "Kid Flash", i: "https://i.pinimg.com/736x/1a/12/97/1a129763e05e0118893a558040b15a9a.jpg" },
+{ n: "Dash Parr", i: "https://i.pinimg.com/736x/86/4b/b8/864bb89a760c8f5d579ba630a1063d4b.jpg" },
+{ n: "Beep-Beep", i: "https://i.pinimg.com/1200x/e0/9f/18/e09f189addfb20d6e14cb51a87ec43bb.jpg" },
+{ n: "Dr Doofenshmirtz", i: "https://i.pinimg.com/1200x/c7/8b/74/c78b74d50baef1a8bf4948c797a23c8a.jpg" },
+{ n: "Plankton", i: "https://i.pinimg.com/736x/5f/7a/38/5f7a38445fb9f317a4f78b955ae825ce.jpg" },
+{ n: "James", i: "https://i.pinimg.com/736x/52/de/52/52de526b43ed08e7dfcd24948205d9eb.jpg" },
+{ n: "Waluigi", i: "https://i.pinimg.com/736x/68/2b/61/682b611cb8b1b9eca045cc801e5ed25f.jpg" },
+{ n: "Pacifica", i: "https://i.pinimg.com/736x/ee/84/b9/ee84b9508a7782e1dea9ae98199c94f8.jpg" },
+{ n: "Jessie", i: "https://i.pinimg.com/736x/37/14/56/371456be7855856874a7325b20b17312.jpg" },
+{ n: "Candace", i: "https://i.pinimg.com/736x/7b/59/2b/7b592b36ddd2f2e20b55c0d93835649c.jpg" },
+{ n: "Harley Quinn", i: "https://i.pinimg.com/736x/14/7a/bf/147abf4c3f45f88b19c805c72c58ca1a.jpg" },
+{ n: "Superboy", i: "https://i.pinimg.com/736x/34/20/a3/3420a34c3f0a287a8c06d435fcb577b7.jpg" },
+{ n: "Danny", i: "https://i.pinimg.com/736x/5e/5d/8a/5e5d8aa55ab87006f5a773b06299750e.jpg" },
+{ n: "Ben 10", i: "https://i.pinimg.com/736x/be/90/52/be9052475920b10fc6261b3aae2487a7.jpg" },
+{ n: "Raven", i: "https://i.pinimg.com/736x/fc/e3/30/fce330b50ce9cbf53287e441be15d597.jpg" },
+{ n: "Johnny Bravo", i: "https://i.pinimg.com/736x/fe/40/3f/fe403f42663b80a6e01d96ef8cbe7a76.jpg" },
+{ n: "Lightning", i: "https://i.pinimg.com/1200x/7b/c6/f8/7bc6f835f18606b724a2acf9c483f34b.jpg" },
+{ n: "Larry", i: "https://i.pinimg.com/1200x/83/a6/63/83a66340fdf4ea63e79f571ad2d10715.jpg" },
+{ n: "Gaston", i: "https://i.pinimg.com/1200x/4b/18/9b/4b189b8cdbfe9a5bdf53570f99655918.jpg" },
+{ n: "Elsa", i: "https://i.pinimg.com/736x/d8/19/10/d819101157f153a19e84aa5ee0a72b9f.jpg" },
+{ n: "Rapunzel", i: "https://i.pinimg.com/736x/91/6e/d2/916ed20a1658e45f0039f582f02dc507.jpg" },
+{ n: "Merlino", i: "https://i.pinimg.com/736x/c4/aa/fa/c4aafa2f0356da1003137bd12edfffac.jpg" },
+{ n: "Ade", i: "https://i.pinimg.com/736x/e7/29/0c/e7290c161c9517ba4038274d1aa8a6cf.jpg" },
+{ n: "Gommarosa", i: "https://i.pinimg.com/736x/27/3e/df/273edf0076e41b90096717b89e04c1aa.jpg" },
+{ n: "Vanellope", i: "https://i.pinimg.com/736x/ad/5f/16/ad5f1687ee819a550fd789b6d7e356db.jpg" },
+{ n: "Peach", i: "https://i.pinimg.com/736x/4e/fa/40/4efa401eafab814002a472cee6a847b5.jpg" },
+{ n: "Zelda", i: "https://i.pinimg.com/736x/6e/cc/8c/6ecc8c13f456dd1b91023cd7475632c8.jpg" },
+{ n: "Woody", i: "https://i.pinimg.com/736x/c6/cc/ca/c6ccca2d5a37919657b6eae0ccaba8fe.jpg" },
+{ n: "Buzz", i: "https://i.pinimg.com/736x/30/c9/e0/30c9e0a90ae1e73676b7b210b74ae7a1.jpg" },
+{ n: "Jessie TS", i: "https://i.pinimg.com/736x/54/f1/0b/54f10bf2096e5872f94334fcddefbcb1.jpg" },
+{ n: "Bullseye", i: "https://i.pinimg.com/736x/b8/b5/4c/b8b54c5ccec106b962ccc598ea83d530.jpg" },
+{ n: "Fred", i: "https://i.pinimg.com/1200x/78/bf/42/78bf42e10ff3abd7c9dc6bffd684af84.jpg" },
+{ n: "Daphne", i: "https://i.pinimg.com/736x/8e/13/57/8e13578db1208f86f7b8059647d82cdb.jpg" },
+{ n: "Velma", i: "https://i.pinimg.com/736x/2e/1e/95/2e1e953bb0b8a89d1574c0b221cd39b1.jpg" },
+{ n: "Shaggy", i: "https://i.pinimg.com/736x/73/18/0e/73180e9d1b68bee40fa289746f8c06de.jpg" }
+];
 
-        const teamNames = ["Titani", "Abisso", "Foresta", "Fulmine", "Nebula", "Inferno", "Glaciali", "Sabbia", "Corazza", "Spiriti"];
-        const teamColors = ["#ef4444", "#3b82f6", "#22c55e", "#eab308", "#a855f7", "#ec4899", "#06b6d4", "#f97316", "#14b8a6", "#8b5cf6"];
+const teamNames = ["Titani", "Abisso", "Foresta", "Fulmine", "Nebula", "Inferno", "Glaciali", "Sabbia", "Corazza", "Spiriti"];
+const teamColors = ["#ef4444", "#3b82f6", "#22c55e", "#eab308", "#a855f7", "#ec4899", "#06b6d4", "#f97316", "#14b8a6", "#8b5cf6"];
 
-        let currentUser = null, nick = "", roomCode = "", isHost = false, roomData = null, timerInt = null;
-        let myBetTeamId = null, myPower = 0, myDoubleVotes = 0, isDoubleActive = false, localVoted = false;
+let currentUser = null, nick = "", roomCode = "", isHost = false, roomData = null, timerInt = null;
+let myBetTeamId = null, myPower = 0, myDoubleVotes = 0, isDoubleActive = false, localVoted = false;
 
-        const getRoomDoc = (code) => doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
+const getRoomDoc = (code) => doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code);
 
-        const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        };
+const initAuth = async () => {
+if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+await signInWithCustomToken(auth, __initial_auth_token);
+} else { await signInAnonymously(auth); }
+};
 
-        onAuthStateChanged(auth, u => { 
-            if(u) { currentUser = u; document.getElementById('auth-status').innerText = "COLLEGAMENTO STABILE"; } 
-            else { initAuth(); }
-        });
-        initAuth();
+onAuthStateChanged(auth, u => { if(u) { currentUser = u; document.getElementById('auth-status').innerText = "Online"; } });
+initAuth();
 
-        window.handleCreateRoom = async () => {
-            nick = document.getElementById('nick-input').value.trim();
-            if(!nick) return showToast("Scegli un nome!");
-            roomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
-            isHost = true;
-            const shuffled = [...rawPool].sort(() => Math.random() - 0.5);
-            const fighters = shuffled.map((c, i) => ({ id: i, n: c.n, i: c.i, dead: false, wins: 0, teamId: Math.floor(i/10) }));
-            const teams = teamNames.map((n, i) => ({ id: i, name: n, color: teamColors[i] }));
-            await setDoc(getRoomDoc(roomCode), { 
-                host: currentUser.uid, status: 'waiting', players: [{ uid: currentUser.uid, nick }], 
-                teams, allFighters: fighters, round: 1, timerEnd: 0, arena: [], votes: {} 
-            });
-            enterGame();
-        };
+window.handleCreateRoom = async () => {
+if(!currentUser) return;
+nick = document.getElementById('nick-input').value.trim();
+if(!nick) return showToast("Inserisci nickname!");
+roomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+isHost = true;
 
-        window.handleJoinRoom = async () => {
-            const code = document.getElementById('join-code-input').value.trim().toUpperCase();
-            nick = document.getElementById('nick-input').value.trim();
-            if(!nick || !code) return;
-            const snap = await getDoc(getRoomDoc(code));
-            if(!snap.exists()) return showToast("Codice errato!");
-            roomCode = code;
-            await updateDoc(getRoomDoc(code), { players: arrayUnion({ uid: currentUser.uid, nick }) });
-            enterGame();
-        };
+const shuffledPool = [...rawPool].sort(() => Math.random() - 0.5);
+const fighters = shuffledPool.map((c, i) => ({ id: i, n: c.n, i: c.i, dead: false, wins: 0, teamId: Math.floor(i/10) }));
+const teams = teamNames.map((n, i) => ({ id: i, name: n, color: teamColors[i] }));
 
-        function enterGame() {
-            document.getElementById('menu-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('display-room-code').innerText = roomCode;
-            onSnapshot(getRoomDoc(roomCode), snap => { 
-                if(snap.exists()) { 
-                    const oldData = roomData;
-                    roomData = snap.data(); 
-                    if(oldData) checkTeamExtinction(oldData, roomData);
-                    updateUI(); 
-                    if(isHost && roomData.status === 'voting') {
-                        const total = roomData.players.length;
-                        const votted = Object.keys(roomData.votes || {}).length;
-                        if(votted >= total && roomData.timerEnd > Date.now() + 500) {
-                            updateDoc(getRoomDoc(roomCode), { timerEnd: Date.now() });
-                        }
-                    }
-                } 
-            });
-        }
+await setDoc(getRoomDoc(roomCode), { 
+host: currentUser.uid, status: 'waiting', players: [{ uid: currentUser.uid, nick }], 
+teams, allFighters: fighters, round: 1, timerEnd: 0, arena: [], votes: {}, bets: {} 
+});
+enterGame();
+};
 
-        async function checkTeamExtinction(old, current) {
-            for(let tid = 0; tid < 10; tid++) {
-                const wasAlive = old.allFighters.filter(f => !f.dead && f.teamId === tid).length > 0;
-                const isNowDead = current.allFighters.filter(f => !f.dead && f.teamId === tid).length === 0;
-                if(wasAlive && isNowDead) {
-                    const team = current.teams[tid];
-                    const members = current.allFighters.filter(f => f.teamId === tid);
-                    const overlay = document.getElementById('team-extinction-overlay');
-                    document.getElementById('extinction-msg').innerText = `TEAM ${team.name} ELIMINATO`;
-                    document.getElementById('extinction-msg').style.color = team.color;
-                    document.getElementById('extinction-grid').innerHTML = members.map(m => `
-                        <div class="vanish flex flex-col items-center">
-                            <img src="${m.i}" class="w-32 h-32 rounded-[2rem] object-cover border-4" style="border-color:${team.color}">
-                            <p class="font-black mt-3 uppercase text-sm">${m.n}</p>
-                        </div>
-                    `).join('');
-                    overlay.classList.remove('hidden');
-                    setTimeout(() => overlay.classList.add('hidden'), 5000);
-                }
-            }
-        }
+window.handleJoinRoom = async () => {
+const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+nick = document.getElementById('nick-input').value.trim();
+if(!nick || !code) return;
+const snap = await getDoc(getRoomDoc(code));
+if(!snap.exists()) return;
+roomCode = code;
+await updateDoc(getRoomDoc(code), { players: arrayUnion({ uid: currentUser.uid, nick }) });
+enterGame();
+};
 
-        function updateUI() {
-            const { status, round, teams, allFighters, arena, votes, timerEnd, players } = roomData;
-            document.getElementById('round-display').innerText = `ROUND ${round}`;
-            document.getElementById('waiting-lobby').classList.toggle('hidden', status !== 'waiting');
-            document.getElementById('betting-screen').classList.toggle('hidden', status !== 'betting');
-            document.getElementById('voting-arena').classList.toggle('hidden', status !== 'voting');
-            document.getElementById('suspense-screen').classList.toggle('hidden', status !== 'suspense');
-            document.getElementById('victory-screen').classList.toggle('hidden', status !== 'finished');
-            if(isHost) document.getElementById('host-controls').classList.toggle('hidden', status !== 'waiting');
-            
-            if(status === 'waiting') {
-                document.getElementById('lobby-list').innerHTML = players.map(p => `<span class="bg-blue-500/10 px-6 py-3 rounded-2xl font-black text-blue-400 border border-blue-500/30">${p.nick}</span>`).join('');
-            }
-            if(status === 'betting') { renderBetOptions(teams); startTimer(timerEnd, 30000); }
-            if(status === 'voting') { 
-                const votted = Object.keys(votes || {}).length;
-                document.getElementById('votes-counter').innerText = `ATTESA VOTI (${votted}/${players.length})`;
-                renderArena(arena, votes, allFighters, teams, round, players.length); 
-                startTimer(timerEnd, 15000); 
-            }
-            if(status === 'suspense') { renderSuspense(arena, votes, allFighters); }
-            if(status === 'finished') { renderFinalVictory(allFighters, teams); }
-            renderTopStats(allFighters, teams);
-            renderTeamsPanel(teams, allFighters, arena);
-        }
+function enterGame() {
+document.getElementById('menu-screen').classList.add('hidden');
+document.getElementById('game-screen').classList.remove('hidden');
+document.getElementById('display-room-code').innerText = roomCode;
+onSnapshot(getRoomDoc(roomCode), snap => { if(snap.exists()) { 
+const oldData = roomData;
+roomData = snap.data(); 
+if(oldData) checkTeamExtinction(oldData, roomData);
+updateUI(); 
+} });
+}
 
-        function renderBetOptions(teams) {
-            if(myBetTeamId !== null) {
-                document.getElementById('bet-options').innerHTML = `<div class="col-span-full py-10"><p class="text-3xl font-black uppercase text-blue-500 italic animate-pulse">Squadra Selezionata!</p></div>`;
-                return;
-            }
-            document.getElementById('bet-options').innerHTML = teams.map(t => `
-                <button onclick="submitBet(${t.id}, '${t.name}')" class="glass p-6 rounded-3xl border-b-4 hover:scale-105 transition-all font-black uppercase" style="border-bottom-color:${t.color}">
-                    <span style="color:${t.color}">${t.name}</span>
-                </button>
-            `).join('');
-        }
+async function checkTeamExtinction(old, current) {
+const oldAlives = old.allFighters.filter(f => !f.dead);
+const curAlives = current.allFighters.filter(f => !f.dead);
 
-        window.submitBet = async (tid) => {
-            myBetTeamId = tid;
-            await updateDoc(getRoomDoc(roomCode), { [`bets.${currentUser.uid}`]: tid });
-        };
+for(let tid = 0; tid < 10; tid++) {
+const wasAlive = oldAlives.some(f => f.teamId === tid);
+const isNowDead = !curAlives.some(f => f.teamId === tid);
 
-        function startTimer(endTime, duration) {
-            if(timerInt) clearInterval(timerInt);
-            timerInt = setInterval(() => {
-                const diff = endTime - Date.now();
-                const perc = Math.max(0, (diff / duration) * 100);
-                document.getElementById('timer-bar').style.width = perc + '%';
-                if(diff <= 0) { 
-                    clearInterval(timerInt); 
-                    if(isHost) { 
-                        if(roomData.status === 'betting') nextMatch(); 
-                        else if(roomData.status === 'voting') processRound(); 
-                    } 
-                }
-            }, 100);
-        }
+if(wasAlive && isNowDead) {
+const team = current.teams[tid];
+const members = current.allFighters.filter(f => f.teamId === tid);
 
-        async function processRound() {
-            if(!isHost) return;
-            await updateDoc(getRoomDoc(roomCode), { status: 'suspense' });
-            setTimeout(async () => {
-                const snap = await getDoc(getRoomDoc(roomCode));
-                const d = snap.data();
-                let counts = {}; d.arena.forEach(id => counts[id] = 0);
-                if(d.votes) Object.values(d.votes).forEach(v => { if(counts[v.id] !== undefined) counts[v.id] += v.w; });
-                let max = -1, cands = [];
-                for(let id in counts) { if(counts[id]>max){max=counts[id]; cands=[parseInt(id)];} else if(counts[id]===max)cands.push(parseInt(id)); }
-                const deadId = cands[Math.floor(Math.random()*cands.length)];
-                
-                const updated = d.allFighters.map(f => {
-                    if(f.id === deadId) return { ...f, dead: true };
-                    if(d.arena.includes(f.id)) return { ...f, wins: (f.wins||0)+1 };
-                    return f;
-                });
-                await updateDoc(getRoomDoc(roomCode), { allFighters: updated, round: d.round + 1 });
-                setTimeout(nextMatch, 3000);
-            }, 2000);
-        }
+const overlay = document.getElementById('team-extinction-overlay');
+const grid = document.getElementById('extinction-grid');
+document.getElementById('extinction-msg').innerText = `Il Team ${team.name} ha esaurito i membri!`;
+document.getElementById('extinction-msg').style.color = team.color;
 
-        async function nextMatch() {
-            const snap = await getDoc(getRoomDoc(roomCode));
-            const d = snap.data();
-            const alive = d.allFighters.filter(f => !f.dead);
-            if(alive.length <= 1) { await updateDoc(getRoomDoc(roomCode), { status: 'finished' }); return; }
-            
-            let arena = [];
-            if(d.round % 20 === 0) {
-                const isBest = (d.round/20)%2!==0;
-                const sorted = [...alive].sort((a,b)=>isBest?b.wins-a.wins:a.wins-b.wins);
-                const selected = []; const tUsed = new Set();
-                for(let f of sorted) { if(!tUsed.has(f.teamId)){selected.push(f.id); tUsed.add(f.teamId);} if(selected.length>=4) break; }
-                arena = selected;
-            } else {
-                const tids = [...new Set(alive.map(f => f.teamId))].sort(() => Math.random() - 0.5).slice(0, 4);
-                arena = tids.map(tid => {
-                    const pool = alive.filter(f => f.teamId === tid);
-                    return pool[Math.floor(Math.random()*pool.length)].id;
-                });
-            }
-            localVoted = false;
-            await updateDoc(getRoomDoc(roomCode), { status: 'voting', arena, votes: {}, timerEnd: Date.now() + 15000 });
-        }
+grid.innerHTML = members.map(m => `
+                       <div class="vanish">
+                           <img src="${m.i}" class="w-20 h-20 rounded-xl object-cover border-2" style="border-color:${team.color}">
+                           <p class="text-[8px] font-bold mt-1">${m.n}</p>
+                       </div>
+                   `).join('');
 
-        function renderArena(ids, votes, fighters, teams, round, total) {
-            const container = document.getElementById('matchDisplay');
-            const votted = Object.keys(votes || {}).length;
-            const revealed = votted >= total;
+overlay.classList.remove('hidden');
+setTimeout(() => overlay.classList.add('hidden'), 4000);
+break;
+}
+}
+}
 
-            const isSpecial = round % 20 === 0;
-            const msg = document.getElementById('special-challenge-msg');
-            if(isSpecial) {
-                msg.innerText = (round/20)%2!==0 ? "🔥 ELITE CLASH 🔥" : "💀 SURVIVAL CLASH 💀";
-                msg.classList.remove('hidden');
-            } else { msg.classList.add('hidden'); }
+function updateUI() {
+const { status, round, teams, allFighters, arena, votes, timerEnd } = roomData;
+document.getElementById('round-display').innerText = `ROUND ${round}`;
 
-            container.innerHTML = ids.map(id => {
-                const f = fighters.find(x => x.id === id);
-                const t = teams.find(x => x.id === f.teamId);
-                const count = Object.values(votes || {}).filter(v => v.id === id).reduce((a, b) => a + b.w, 0);
-                return `
-                    <div onclick="castVote(${id})" class="fighter-card cursor-pointer glass p-8 rounded-[3.5rem] w-64 flex flex-col items-center border-4" style="border-color:${t.color}40">
-                        <div class="relative mb-6">
-                            <img src="${f.i}" class="w-44 h-44 rounded-[2.5rem] object-cover shadow-2xl border-4" style="border-color:${t.color}">
-                            <div class="win-badge">${f.wins || 0}</div>
-                        </div>
-                        <h3 class="font-black text-2xl uppercase tracking-tighter mb-1">${f.n}</h3>
-                        <span class="text-[10px] font-black uppercase px-4 py-1 rounded-full" style="background:${t.color}20; color:${t.color}">${t.name}</span>
-                        <div class="mt-8 text-5xl font-black italic transition-all ${revealed ? 'vote-visible' : 'vote-hidden'}">${count}</div>
-                    </div>
-                `;
-            }).join('');
-        }
+document.getElementById('waiting-lobby').classList.toggle('hidden', status !== 'waiting');
+document.getElementById('betting-screen').classList.toggle('hidden', status !== 'betting');
+document.getElementById('voting-arena').classList.toggle('hidden', status !== 'voting');
+document.getElementById('suspense-screen').classList.toggle('hidden', status !== 'suspense');
+document.getElementById('victory-screen').classList.toggle('hidden', status !== 'finished');
 
-        window.castVote = async (id) => {
-            if(localVoted || roomData.status !== 'voting') return;
-            const w = (isDoubleActive && myDoubleVotes > 0) ? 2 : 1;
-            localVoted = true;
-            if(isDoubleActive) { myDoubleVotes--; isDoubleActive = false; }
-            
-            const aliveF = roomData.allFighters.find(f => f.id === id);
-            if(aliveF && aliveF.teamId === myBetTeamId) {
-                // Se voti il tuo team guadagni meno o perdi punti? 
-                // In questo gioco voti chi vuoi eliminare.
-            }
+if(isHost) document.getElementById('host-controls').classList.toggle('hidden', status !== 'waiting');
 
-            await updateDoc(getRoomDoc(roomCode), { [`votes.${currentUser.uid}`]: { id, w } });
-            showToast("VOTO INVIATO");
-            
-            // Logica Power-up (guadagni quando i tuoi membri sopravvivono ai round)
-            if(roomData.arena.every(aid => {
-                const fighter = roomData.allFighters.find(x => x.id === aid);
-                return fighter.teamId === myBetTeamId ? aid !== id : true;
-            })) {
-                // Se non hai votato il tuo team, e il tuo team è in arena...
-            }
-        };
+if(status === 'betting') { 
+if(myBetTeamId === null) renderBetOptions(teams); 
+startTimer(timerEnd, 30000); 
+}
+if(status === 'voting') { 
+renderArena(arena, votes, allFighters, teams, round); 
+startTimer(timerEnd, 15000); 
+}
+if(status === 'suspense') { renderSuspense(arena, votes, allFighters); }
+if(status === 'finished') { renderFinalVictory(allFighters, teams); }
 
-        function renderSuspense(arena, votes, fighters) {
-            let counts = {}; arena.forEach(id => counts[id] = 0);
-            if(votes) Object.values(votes).forEach(v => { if(counts[v.id] !== undefined) counts[v.id] += v.w; });
-            document.getElementById('reveal-votes').innerHTML = arena.map(id => {
-                const f = fighters.find(x => x.id === id);
-                return `<div class="text-center"><img src="${f.i}" class="w-28 h-28 rounded-[2rem] border-4 border-red-600 mb-4 mx-auto object-cover"><div class="font-black text-6xl text-red-600">${counts[id]}</div></div>`;
-            }).join('');
-        }
+renderTopStats(allFighters, teams);
+renderTeamsPanel(teams, allFighters, arena);
+}
 
-        function renderFinalVictory(fighters, teams) {
-            const alive = fighters.filter(f => !f.dead);
-            if(alive.length === 0) return;
-            const team = teams[alive[0].teamId];
-            document.getElementById('winTeamName').innerText = team.name;
-            document.getElementById('winTeamName').style.color = team.color;
-            const members = fighters.filter(f => f.teamId === team.id).sort((a,b) => (b.wins||0)-(a.wins||0));
-            document.getElementById('win-team-members').innerHTML = members.map((m, i) => `
-                <div class="text-center glass p-8 rounded-[3rem] w-48 ${i===0 ? 'gold-glow scale-110' : ''}">
-                    <div class="relative inline-block mb-4">
-                        <img src="${m.i}" class="w-32 h-32 rounded-[2rem] object-cover border-4" style="border-color:${team.color}">
-                        ${i===0 ? '<div class="absolute -top-6 -right-6 text-6xl">👑</div>' : ''}
-                    </div>
-                    <p class="font-black uppercase truncate text-sm">${m.n}</p>
-                    <p class="text-3xl font-black text-yellow-500 mt-2">${m.wins||0} WINS</p>
-                    <p class="text-[10px] font-bold text-slate-500 mt-1">${m.dead ? 'CADUTO' : 'SUPERSTITE'}</p>
-                </div>
-            `).join('');
-        }
+function renderBetOptions(teams) {
+document.getElementById('bet-options').innerHTML = teams.map(t => `
+               <button onclick="submitBet(${t.id}, '${t.name}')" class="glass p-4 rounded-2xl border-b-4 hover:bg-slate-800 transition-all font-black uppercase text-xs" style="border-bottom-color:${t.color}">
+                   <span style="color:${t.color}">${t.name}</span>
+               </button>
+           `).join('');
+}
 
-        function renderTopStats(fighters, teams) {
-            const tStats = teams.map(t => {
-                const alive = fighters.filter(f => f.teamId === t.id && !f.dead).length;
-                return { ...t, alive };
-            }).sort((a,b) => b.alive - a.alive).slice(0, 5);
-            document.getElementById('top-teams-list').innerHTML = tStats.map(t => `
-                <div class="flex items-center gap-2 bg-slate-900 px-3 py-1 rounded-full border border-white/5">
-                    <div class="w-2 h-2 rounded-full" style="background:${t.color}"></div>
-                    <span class="text-[10px] font-black uppercase">${t.name}</span>
-                    <span class="text-[10px] font-black text-blue-400">${t.alive}</span>
-                </div>
-            `).join('');
+window.submitBet = async (tid, tname) => {
+myBetTeamId = tid;
+document.getElementById('bet-options').innerHTML = `<div class="col-span-full py-10"><p class="text-blue-500 text-xl font-black uppercase italic animate-pulse">Scommessa piazzata su ${tname}!</p></div>`;
+await updateDoc(getRoomDoc(roomCode), { [`bets.${currentUser.uid}`]: tid });
+};
 
-            const topF = [...fighters].sort((a,b) => (b.wins||0)-(a.wins||0)).slice(0, 10);
-            document.getElementById('top-fighters-list').innerHTML = topF.map(f => `
-                <div class="relative w-10 h-10 shrink-0 ${f.dead ? 'grayscale opacity-20' : ''}">
-                    <img src="${f.i}" class="w-full h-full rounded-lg object-cover border" style="border-color:${teams[f.teamId].color}">
-                </div>
-            `).join('');
-        }
+function startTimer(endTime, duration) {
+if(timerInt) clearInterval(timerInt);
+timerInt = setInterval(() => {
+const now = Date.now();
+const diff = endTime - now;
+const perc = Math.max(0, (diff / duration) * 100);
+document.getElementById('timer-bar').style.width = perc + '%';
+if(diff <= 0) { 
+clearInterval(timerInt); 
+if(isHost) { 
+if(roomData?.status === 'betting') nextMatch(); 
+else if(roomData?.status === 'voting') processRound(); 
+} 
+}
+}, 100);
+}
 
-        function renderTeamsPanel(teams, fighters, arena) {
-            const container = document.getElementById('teamsContainer');
-            container.innerHTML = teams.map(t => {
-                const members = fighters.filter(f => f.teamId === t.id);
-                const alive = members.filter(f => !f.dead).length;
-                const isMy = t.id === myBetTeamId;
-                
-                // Logica powerup semplice: ogni round che il tuo team sopravvive
-                if(isMy && roomData?.status === 'suspense') {
-                   const inArena = arena?.some(id => members.find(m => m.id === id));
-                   const survived = arena?.every(id => {
-                       const f = fighters.find(x => x.id === id);
-                       return f.teamId === t.id ? !f.dead : true;
-                   });
-                   if(inArena && survived) { /* bonus logic could go here */ }
-                }
+async function processRound() {
+if(!isHost || roomData.status !== 'voting') return;
+await updateDoc(getRoomDoc(roomCode), { status: 'suspense' });
+setTimeout(async () => {
+const snap = await getDoc(getRoomDoc(roomCode));
+const { votes, arena, allFighters, round } = snap.data();
+let counts = {}; arena.forEach(id => counts[id] = 0);
+if(votes) Object.values(votes).forEach(v => { if(v && counts[v.id] !== undefined) counts[v.id] += v.w; });
 
-                return `
-                <div class="min-w-[220px] glass p-4 rounded-[2rem] flex flex-col justify-between ${isMy ? 'ring-2 ring-blue-500 bg-blue-900/10' : ''} ${alive===0 ? 'opacity-20' : ''}">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-black text-[10px] uppercase" style="color:${t.color}">${t.name}</span>
-                        <span class="text-[10px] font-black bg-white/5 px-2 py-0.5 rounded-md">${alive}/10</span>
-                    </div>
-                    <div class="grid grid-cols-5 gap-1.5">
-                        ${members.map(m => `
-                            <img src="${m.i}" class="w-8 h-8 rounded-md object-cover ${m.dead ? 'opacity-10 grayscale' : ''} ${arena?.includes(m.id) ? 'ring-2 ring-white animate-pulse' : ''}">
-                        `).join('')}
-                    </div>
-                    ${isMy ? `
-                    <div class="mt-3">
-                        <button onclick="toggleDoubleVote()" class="w-full py-1.5 rounded-xl text-[9px] font-black uppercase transition-all ${myDoubleVotes > 0 ? (isDoubleActive ? 'active-double' : 'bg-yellow-600') : 'bg-slate-800 text-slate-600 cursor-not-allowed'}">⚡ X2 VOTE (${myDoubleVotes})</button>
-                    </div>` : ''}
-                </div>`;
-            }).join('');
-        }
+let max = -1, candidates = [];
+for(let id in counts) {
+if(counts[id] > max) { max = counts[id]; candidates = [parseInt(id)]; }
+else if(counts[id] === max) candidates.push(parseInt(id));
+}
 
-        function showToast(m) {
-            const t = document.getElementById('toast'); t.innerText = m; t.classList.remove('hidden');
-            setTimeout(() => t.classList.add('hidden'), 2500);
-        }
+const deadId = candidates[Math.floor(Math.random() * candidates.length)];
 
-        window.startBettingPhase = async () => { if(isHost) await updateDoc(getRoomDoc(roomCode), { status: 'betting', timerEnd: Date.now() + 30000 }); };
-        window.toggleDoubleVote = () => { if(myDoubleVotes > 0) { isDoubleActive = !isDoubleActive; renderTeamsPanel(roomData.teams, roomData.allFighters, roomData.arena); } };
-    </script>
+arena.forEach(fid => {
+if(fid !== deadId) {
+const f = allFighters.find(x => x.id === fid);
+if(f && f.teamId === myBetTeamId) {
+myPower++;
+if(myPower >= 15) { myPower = 0; myDoubleVotes++; showToast("⚡ VOTO X2 CARICO!"); }
+}
+}
+});
+
+const updatedFighters = allFighters.map(f => {
+if(f.id === deadId) return { ...f, dead: true };
+if(arena.includes(f.id)) return { ...f, wins: (f.wins || 0) + 1 };
+return f;
+});
+
+await updateDoc(getRoomDoc(roomCode), { allFighters: updatedFighters, round: round + 1 });
+setTimeout(nextMatch, 1500);
+}, 1500);
+}
+
+async function nextMatch() {
+if(!isHost) return;
+const snap = await getDoc(getRoomDoc(roomCode));
+const data = snap.data();
+const alive = data.allFighters.filter(f => !f.dead);
+const r = data.round;
+
+if(alive.length <= 1) { await updateDoc(getRoomDoc(roomCode), { status: 'finished' }); return; }
+
+let arena = [];
+// Logica Sfide Speciali ogni 20 Round
+if(r % 20 === 0) {
+const isBest = (r / 20) % 2 !== 0; // Alterna Best (20, 60) e Worst (40, 80)
+const sorted = [...alive].sort((a,b) => isBest ? b.wins - a.wins : a.wins - b.wins);
+// Prendi i primi 4, ma di team diversi
+const selected = [];
+const usedTeams = new Set();
+for(let f of sorted) {
+if(!usedTeams.has(f.teamId)) {
+selected.push(f.id);
+usedTeams.add(f.teamId);
+}
+if(selected.length >= 4) break;
+}
+arena = selected;
+} else {
+const activeTeams = [...new Set(alive.map(f => f.teamId))].sort(() => Math.random() - 0.5);
+arena = activeTeams.slice(0, 4).map(tid => {
+const teamF = alive.filter(f => f.teamId === tid);
+return teamF[Math.floor(Math.random() * teamF.length)].id;
+});
+}
+
+localVoted = false;
+await updateDoc(getRoomDoc(roomCode), { status: 'voting', arena, votes: {}, timerEnd: Date.now() + 15000 });
+}
+
+function renderArena(ids, votes, fighters, teams, round) {
+const isSpecial = round % 20 === 0;
+const challengeBox = document.getElementById('special-challenge-msg');
+if(isSpecial) {
+const type = (round / 20) % 2 !== 0 ? "TOP 4: PIÙ PUNTI" : "FLOP 4: MENO PUNTI";
+challengeBox.innerText = `🔥 SFIDA SPECIALE: ${type} 🔥`;
+challengeBox.classList.remove('hidden');
+document.getElementById('voting-title').innerText = "SFIDA SPECIALE: ELIMINA IL PIÙ PERICOLOSO!";
+} else {
+challengeBox.classList.add('hidden');
+document.getElementById('voting-title').innerText = "Chi vuoi eliminare?";
+}
+
+document.getElementById('matchDisplay').innerHTML = ids.map(fid => {
+const f = fighters.find(x => x.id === fid);
+const team = teams.find(t => t.id === f.teamId);
+const isSelected = votes?.[currentUser?.uid]?.id === fid;
+return `
+               <div onclick="castVote(${fid})" class="glass w-36 rounded-[2rem] p-3 cursor-pointer border-4 transition-all ${isSelected ? 'card-active' : 'border-white/5'}">
+                   <div class="relative mb-2">
+                       <div class="win-badge">${f.wins}</div>
+                       <img src="${f.i}" class="w-full h-28 object-cover rounded-2xl">
+                   </div>
+                   <div class="text-center">
+                       <p class="text-[10px] font-black uppercase truncate">${f.n}</p>
+                       <div class="team-tag" style="background:${team.color}22; color:${team.color}; border:1px solid ${team.color}44">${team.name}</div>
+                   </div>
+               </div>`;
+}).join('');
+}
+
+window.castVote = async (fid) => {
+const weight = isDoubleActive ? 2 : 1;
+if(isDoubleActive) { myDoubleVotes--; isDoubleActive = false; }
+localVoted = true;
+await updateDoc(getRoomDoc(roomCode), { [`votes.${currentUser.uid}`]: { id: fid, w: weight } });
+};
+
+function renderSuspense(arena, votes, fighters) {
+let totals = {}; arena.forEach(id => totals[id] = 0);
+if(votes) Object.values(votes).forEach(v => { if(v && totals[v.id] !== undefined) totals[v.id] += v.w; });
+document.getElementById('reveal-votes').innerHTML = arena.map(id => {
+const f = fighters.find(x => x.id === id);
+return `<div class="text-center"><img src="${f.i}" class="w-16 h-16 rounded-full object-cover border-4 border-slate-700 mb-2 mx-auto"><div class="bg-red-600 font-black rounded-full px-3 py-1 text-lg shadow-lg">${totals[id] || 0}</div></div>`;
+}).join('');
+}
+
+function renderFinalVictory(fighters, teams) {
+const alive = fighters.filter(f => !f.dead);
+if(alive.length === 0) return;
+const winTeam = teams.find(t => t.id === alive[0].teamId);
+const members = fighters.filter(f => f.teamId === winTeam.id).sort((a,b) => b.wins - a.wins);
+
+document.getElementById('winTeamName').innerText = winTeam.name;
+document.getElementById('winTeamName').style.color = winTeam.color;
+
+document.getElementById('win-team-members').innerHTML = members.map(m => `
+               <div class="text-center">
+                   <div class="relative w-24 h-24 mb-3">
+                       <img src="${m.i}" class="w-full h-full object-cover rounded-2xl border-4 ${m.dead ? 'grayscale opacity-30 border-slate-800' : 'gold-glow border-yellow-500'}">
+                       ${!m.dead ? `<div class="absolute -top-3 -right-3 text-2xl">⭐</div>` : ''}
+                   </div>
+                   <p class="text-[10px] font-black uppercase truncate w-24">${m.n}</p>
+                   <p class="text-[12px] font-black text-yellow-500">${m.wins} PT</p>
+                   ${m.dead ? '<p class="text-[8px] font-bold text-red-500 uppercase">Eliminato</p>' : '<p class="text-[8px] font-bold text-green-500 uppercase">SOPRAVVISSUTO</p>'}
+               </div>
+           `).join('');
+}
+
+function renderTopStats(fighters, teams) {
+const teamCounts = teams.map(t => ({ ...t, count: fighters.filter(f => f.teamId === t.id && !f.dead).length }))
+.sort((a,b) => b.count - a.count).slice(0, 5);
+document.getElementById('top-teams-list').innerHTML = teamCounts.map(t => `<div class="glass px-3 py-1 rounded-lg border-l-4 min-w-[110px]" style="border-left-color:${t.color}"><div class="text-[8px] text-slate-500 font-black uppercase truncate">${t.name}</div><div class="text-xs font-black">${t.count} VIVI</div></div>`).join('');
+
+const topFighters = [...fighters].sort((a,b) => b.wins - a.wins).slice(0, 10);
+document.getElementById('top-fighters-list').innerHTML = topFighters.map(f => `<div class="glass flex items-center gap-2 px-2 py-1 rounded-lg min-w-[120px]"><img src="${f.i}" class="w-6 h-6 rounded-full object-cover"><div class="leading-tight"><div class="text-[8px] font-black uppercase truncate w-16">${f.n}</div><div class="text-[9px] text-yellow-500 font-bold">${f.wins} PT</div></div></div>`).join('');
+}
+
+function renderTeamsPanel(teams, fighters, arena) {
+document.getElementById('teamsContainer').innerHTML = teams.map(t => {
+const members = fighters.filter(f => f.teamId === t.id);
+const alive = members.filter(m => !m.dead);
+const isMyTeam = t.id === myBetTeamId;
+return `
+               <div class="team-box glass min-w-[200px] p-2 rounded-xl border-t-4 flex flex-col justify-between" style="border-top-color:${t.color}">
+                   <div>
+                       <div class="flex justify-between text-[10px] font-black uppercase mb-1" style="color:${t.color}">
+                           <span>${t.name}</span>
+                           <span>${alive.length}/10</span>
+                       </div>
+                       <div class="grid grid-cols-5 gap-1">
+                           ${members.map(m => `<img src="${m.i}" class="w-8 h-8 rounded-md object-cover ${m.dead ? 'grayscale opacity-10' : (arena.includes(m.id) ? 'ring-2 ring-white' : '')}">`).join('')}
+                       </div>
+                   </div>
+                   ${isMyTeam ? `
+                   <div class="mt-2 pt-2 border-t border-white/5">
+                       <div class="flex justify-between text-[7px] font-black text-yellow-500 uppercase mb-1"><span>X2 POWER</span><span>${myPower}/15</span></div>
+                       <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden border border-white/5 relative"><div class="h-full bg-yellow-500 transition-all duration-500" style="width:${(myPower/15)*100}%"></div></div>
+                       <button onclick="toggleDoubleVote()" class="w-full mt-1 py-1 rounded-lg text-[9px] font-black uppercase transition-all ${myDoubleVotes > 0 ? (isDoubleActive ? 'active-double' : 'bg-yellow-600') : 'bg-slate-700 text-slate-500 cursor-not-allowed'}">⚡ USA X2 (${myDoubleVotes})</button>
+                   </div>` : ''}
+               </div>`;
+}).join('');
+}
+
+window.startBettingPhase = async () => { if(isHost) await updateDoc(getRoomDoc(roomCode), { status: 'betting', timerEnd: Date.now() + 30000 }); };
+window.toggleDoubleVote = () => { if(myDoubleVotes > 0) { isDoubleActive = !isDoubleActive; renderTeamsPanel(roomData.teams, roomData.allFighters, roomData.arena); } };
+function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.classList.remove('hidden'); setTimeout(() => t.classList.add('hidden'), 3000); }
+</script>
 </body>
-</html>
