@@ -139,7 +139,15 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, updateDoc, onSnapshot, getDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        const firebaseConfig = {
+            apiKey: "AIzaSyDeq8wRDZUTYvpLzMpxN7sE-j_Y61vUFrM",
+            authDomain: "torneo100-b4a0d.firebaseapp.com",
+            projectId: "torneo100-b4a0d",
+            storageBucket: "torneo100-b4a0d.firebasestorage.app",
+            messagingSenderId: "359288876373",
+            appId: "1:359288876373:web:e4e6654c814f23017993dc",
+            measurementId: "G-T3W5TM1LWN"
+        };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
