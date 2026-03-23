@@ -175,7 +175,15 @@
 
     <script>
         // --- DATABASE SETUP ---
-        const firebaseConfig = JSON.parse(__firebase_config);
+        const firebaseConfig = {
+  apiKey: "AIzaSyCXLgrRBih8pSYqFetmy7HAoRl4WLVUdtI",
+  authDomain: "battlesurvival10x100.firebaseapp.com",
+  projectId: "battlesurvival10x100",
+  storageBucket: "battlesurvival10x100.firebasestorage.app",
+  messagingSenderId: "53334857087",
+  appId: "1:53334857087:web:7fd4df20bb8fbe8a31364a",
+  measurementId: "G-0XMBKR451F"
+};
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
